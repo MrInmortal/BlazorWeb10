@@ -1,0 +1,107 @@
+﻿@page "/colorin"
+@inject Tarea10.Services.ColorService ColorService
+
+<h3 style="text-align: center; font-family: Arial, sans-serif; color: #333; font-size: 24px; margin-bottom: 20px;">COLORIN</h3>
+
+<div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px;">
+    @for (int line = 0; line < 5; line++) // 5 líneas
+    {
+        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+            @for (int box = 0; box < 5; box++) // 5 cuadros por línea
+            {
+                var index = line * 5 + box;
+                <!-- Calculamos el índice único -->
+                <input @bind="ColorInputs[index]"
+                       @oninput="@(e => UpdateColor(index, e))"
+                       style="border: 2px solid @ColorBorders[index]; margin-right: 10px;
+                              width: 60px; height: 60px; font-size: 14px; text-align: center;
+                              border-radius: 8px; padding: 5px; outline: none;
+                              transition: all 0.3s ease-in-out;"
+                       placeholder="Color" />
+            }
+        </div>
+    }
+</div>
+
+<p style="text-align: center; font-size: 18px; color: #555; font-weight: bold;">
+    <span>Cantidad de Rojos:</span> @Reds &nbsp;&nbsp;
+    <span>Cantidad de Verdes:</span> @Greens &nbsp;&nbsp;
+    <span>Cantidad de Azules:</span> @Blues
+</p>
+
+<div style="display: flex; justify-content: center; gap: 20px;">
+    <button @onclick="GuardarDatos" style="background-color: #4CAF50; color: white; padding: 10px 20px;
+                                        font-size: 16px; border: none; border-radius: 5px; cursor: pointer;
+                                        transition: background-color 0.3s;">
+        Guardar
+    </button>
+    <button @onclick="LimpiarDatos" style="background-color: #FF6347; color: white; padding: 10px 20px;
+                                          font-size: 16px; border: none; border-radius: 5px; cursor: pointer;
+                                          transition: background-color 0.3s;">
+        Limpiar
+    </button>
+</div>
+
+@code {
+    private string[] ColorInputs = new string[25]; // 25 cuadros
+    private string[] ColorBorders = new string[25]; // Bordes de los 25 cuadros
+    private int Reds = 0, Greens = 0, Blues = 0;
+
+    private void UpdateColor(int index, ChangeEventArgs e)
+    {
+        var colorInput = e.Value?.ToString() ?? "";
+        ColorInputs[index] = colorInput;
+
+        if (colorInput.Equals("rojo", StringComparison.OrdinalIgnoreCase))
+        {
+            ColorBorders[index] = "red";
+            Reds++;
+        }
+        else if (colorInput.Equals("verde", StringComparison.OrdinalIgnoreCase))
+        {
+            ColorBorders[index] = "green";
+            Greens++;
+        }
+        else if (colorInput.Equals("azul", StringComparison.OrdinalIgnoreCase))
+        {
+            ColorBorders[index] = "blue";
+            Blues++;
+        }
+        else
+        {
+            ColorBorders[index] = "black";
+        }
+    }
+
+    private async Task GuardarDatos()
+    {
+        var colorData = new Tarea10.Models.ColorData { Reds = Reds, Greens = Greens, Blues = Blues };
+        await ColorService.SaveColorDataAsync(colorData);
+    }
+
+    private void LimpiarDatos()
+    {
+        // Restablecer todos los valores a su estado inicial
+        for (int i = 0; i < ColorInputs.Length; i++)
+        {
+            ColorInputs[i] = "";
+            ColorBorders[i] = "black";
+        }
+        Reds = Greens = Blues = 0; // Resetear los contadores
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Inicializar bordes con "black"
+        for (int i = 0; i < ColorBorders.Length; i++) ColorBorders[i] = "black";
+
+        // Cargar datos guardados
+        var data = await ColorService.GetColorDataAsync();
+        if (data != null)
+        {
+            Reds = data.Reds;
+            Greens = data.Greens;
+            Blues = data.Blues;
+        }
+    }
+}

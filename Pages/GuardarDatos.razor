@@ -1,0 +1,25 @@
+﻿@page "/guardardatos"
+@inject Tarea10.Services.ColorService ColorService
+
+<h3>Datos Guardados</h3>
+
+<p>
+    Cantidad de Rojos: @Reds &nbsp;&nbsp;
+    Cantidad de Verdes: @Greens &nbsp;&nbsp;
+    Cantidad de Azules: @Blues
+</p>
+
+@code {
+    private int Reds = 0, Greens = 0, Blues = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await ColorService.GetColorDataAsync();
+        if (data != null)
+        {
+            Reds = data.Reds;
+            Greens = data.Greens;
+            Blues = data.Blues;
+        }
+    }
+}
